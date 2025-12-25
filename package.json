@@ -1,0 +1,15 @@
+{
+  "name": "trivia-p2p",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "playwright"
+  ],
+  "scripts": {
+    "dev": "bun --filter '@trivia-p2p/*' dev",
+    "build": "bun --filter '@trivia-p2p/*' build",
+    "test:unit": "bun --filter '@trivia-p2p/*' test:unit",
+    "test:e2e": "bun --filter '@trivia-p2p/*' test:e2e"
+  }
+}

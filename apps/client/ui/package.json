@@ -1,0 +1,10 @@
+{
+  "name": "@trivia-p2p/client-ui",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -c ./tailwind.config.ts -i ./src/styles.css -o ./dist/styles.css --watch",
+    "build": "tailwindcss -c ./tailwind.config.ts -i ./src/styles.css -o ./dist/styles.css",
+    "test:unit": "bun test",
+    "test:e2e": "bun run ../../../../playwright"
+  }
+}

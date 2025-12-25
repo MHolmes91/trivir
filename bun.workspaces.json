@@ -1,9 +1,5 @@
 {
   "name": "trivia-p2p",
   "version": "0.0.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "playwright"
-  ]
+  "workspaces": ["apps/*", "packages/*", "playwright"]
 }

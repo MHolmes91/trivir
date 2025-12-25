@@ -6,7 +6,9 @@
     "dev": "bun test --watch",
     "build": "bun build ./networking/index.ts --outdir ./dist",
     "test:unit": "bun test",
-    "test:e2e": "bun test"
+    "test:e2e": "bun test",
+    "lint": "eslint .",
+    "prettier:fix": "prettier --write ."
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "latest",

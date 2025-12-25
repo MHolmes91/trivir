@@ -106,6 +106,7 @@ Goal: Static multiple choice questions + gameplay flow.
 
 Behaviors to implement and test:
 
+- Peer can only access room if they know the room password (if one is set)
 - Game start and end logic.
 - Round start and end.
 - Timer enforcement.

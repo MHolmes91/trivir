@@ -7,7 +7,7 @@ import {
   createTriviaPeer,
   discoverRoomPeers,
   type Libp2pLike,
-  type RoomDirectory
+  type RoomDirectory,
 } from "./index";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
@@ -40,11 +40,11 @@ describe("networking", () => {
 
     const first = await createTriviaPeer({
       libp2pFactory: factory,
-      autoStart: false
+      autoStart: false,
     });
     const second = await createTriviaPeer({
       libp2pFactory: factory,
-      autoStart: false
+      autoStart: false,
     });
 
     expect(first.peerId.toString()).not.toBe(second.peerId.toString());
@@ -72,7 +72,7 @@ describe("networking", () => {
     }
 
     expect(discovered.map((entry) => entry.toString())).toEqual([
-      advertiser.peerId.toString()
+      advertiser.peerId.toString(),
     ]);
   });
 });

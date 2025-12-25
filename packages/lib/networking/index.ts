@@ -43,7 +43,7 @@ export function createInMemoryRoomDirectory(): RoomDirectory {
           yield peerId;
         }
       }
-    }
+    },
   };
 }
 
@@ -78,11 +78,14 @@ export async function createPeerId(): Promise<PeerId> {
 }
 
 export async function createNetworkingNode(
-  options: CreateNetworkingNodeOptions = {}
+  options: CreateNetworkingNodeOptions = {},
 ): Promise<Libp2pLike> {
   const peerId = options.peerId ?? (await createPeerId());
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
-  const listenAddresses = options.listenAddresses ?? ["/p2p-circuit", "/webrtc"];
+  const listenAddresses = options.listenAddresses ?? [
+    "/p2p-circuit",
+    "/webrtc",
+  ];
   const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
 
   const { webRTC } = await import("@libp2p/webrtc");
@@ -90,15 +93,16 @@ export async function createNetworkingNode(
   const node = await createLibp2p({
     peerId,
     addresses: {
-      listen: listenAddresses
+      listen: listenAddresses,
     },
     transports: [webSockets(), webRTC(), circuitRelayTransport()],
     connectionEncrypters: [noise()],
     streamMuxers: [yamux()],
-    peerDiscovery: relayMultiaddrs.length > 0 ? [bootstrap({ list: relayMultiaddrs })] : [],
+    peerDiscovery:
+      relayMultiaddrs.length > 0 ? [bootstrap({ list: relayMultiaddrs })] : [],
     services: {
-      identify: identify()
-    }
+      identify: identify(),
+    },
   });
 
   const libp2pNode = node as Libp2pLike;
@@ -109,7 +113,7 @@ export async function createNetworkingNode(
 
 export async function connectToRelay(
   node: Libp2pLike,
-  relayMultiaddr: string
+  relayMultiaddr: string,
 ): Promise<void> {
   if (!relayMultiaddr) {
     throw new Error("Relay multiaddr is required");
@@ -118,14 +122,17 @@ export async function connectToRelay(
   await node.dial(multiaddr(relayMultiaddr));
 }
 
-export async function advertiseRoom(node: Libp2pLike, roomCode: string): Promise<void> {
+export async function advertiseRoom(
+  node: Libp2pLike,
+  roomCode: string,
+): Promise<void> {
   const directory = getRoomDirectory(node);
   await directory.advertise(roomNamespace(roomCode), node.peerId);
 }
 
 export async function* discoverRoomPeers(
   node: Libp2pLike,
-  roomCode: string
+  roomCode: string,
 ): AsyncGenerator<PeerId> {
   const directory = getRoomDirectory(node);
   const namespace = roomNamespace(roomCode);
@@ -136,20 +143,24 @@ export async function* discoverRoomPeers(
 }
 
 export async function createTriviaPeer(
-  options: CreateTriviaPeerOptions = {}
+  options: CreateTriviaPeerOptions = {},
 ): Promise<TriviaPeer> {
   const peerId = options.peerId ?? (await createPeerId());
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
   const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
 
-  const node = options.libp2pFactory
-    ? await options.libp2pFactory(peerId)
-    : await createNetworkingNode({
-        peerId,
-        relayMultiaddrs,
-        listenAddresses: options.listenAddresses,
-        roomDirectory
-      });
+  let node: Libp2pLike;
+
+  if (options.libp2pFactory) {
+    node = await options.libp2pFactory(peerId);
+  } else {
+    node = await createNetworkingNode({
+      peerId,
+      relayMultiaddrs,
+      listenAddresses: options.listenAddresses,
+      roomDirectory,
+    });
+  }
 
   if (!node.roomDirectory) {
     node.roomDirectory = roomDirectory;
@@ -172,10 +183,12 @@ export async function createTriviaPeer(
   return {
     node,
     peerId: node.peerId,
-    connectToRelay: async (relayMultiaddr: string) => connectToRelay(node, relayMultiaddr),
+    connectToRelay: async (relayMultiaddr: string) =>
+      connectToRelay(node, relayMultiaddr),
     advertiseRoom: async (roomCode: string) => advertiseRoom(node, roomCode),
-    discoverRoomPeers: async (roomCode: string) => discoverRoomPeers(node, roomCode),
-    stop: async () => node.stop()
+    discoverRoomPeers: async (roomCode: string) =>
+      discoverRoomPeers(node, roomCode),
+    stop: async () => node.stop(),
   };
 }
 
@@ -191,4 +204,3 @@ function roomNamespace(roomCode: string): string {
 
   return `trivia-room:${normalized}`;
 }
-

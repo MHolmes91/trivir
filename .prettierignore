@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+.turbo/
+.parcel-cache/
+.DS_Store
+bun.lock

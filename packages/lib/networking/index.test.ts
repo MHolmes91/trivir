@@ -2,10 +2,12 @@ import { describe, expect, it } from "bun:test";
 import {
   advertiseRoom,
   connectToRelay,
+  createInMemoryRoomDirectory,
   createPeerId,
   createTriviaPeer,
   discoverRoomPeers,
-  type Libp2pLike
+  type Libp2pLike,
+  type RoomDirectory
 } from "./index";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
@@ -13,31 +15,14 @@ import type { Multiaddr } from "@multiformats/multiaddr";
 const RELAY_MULTIADDR =
   "/dns4/relay.example.com/tcp/443/wss/p2p/12D3KooWJmZCWny8tX6N4ydNfJgwJ2b9wH2iT4sQQPmvxg7zqyyx";
 
-class MockRendezvous {
-  registered: string[] = [];
-  discoverRequests: string[] = [];
-  discovered: Array<{ id: PeerId }> = [];
-
-  async register(namespace: string): Promise<void> {
-    this.registered.push(namespace);
-  }
-
-  async *discover(namespace: string): AsyncGenerator<{ id: PeerId }> {
-    this.discoverRequests.push(namespace);
-    for (const entry of this.discovered) {
-      yield entry;
-    }
-  }
-}
-
 class MockNode implements Libp2pLike {
   peerId: PeerId;
   dialed: Multiaddr[] = [];
-  services?: { rendezvous?: MockRendezvous };
+  roomDirectory?: RoomDirectory;
 
-  constructor(peerId: PeerId, rendezvous?: MockRendezvous) {
+  constructor(peerId: PeerId, roomDirectory?: RoomDirectory) {
     this.peerId = peerId;
-    this.services = { rendezvous };
+    this.roomDirectory = roomDirectory;
   }
 
   async start(): Promise<void> {}
@@ -75,20 +60,19 @@ describe("networking", () => {
   });
 
   it("Peer advertises and discovers room code peers", async () => {
-    const rendezvous = new MockRendezvous();
-    const node = new MockNode(await createPeerId(), rendezvous);
-    const peer = await createPeerId();
-    rendezvous.discovered.push({ id: peer });
+    const directory = createInMemoryRoomDirectory();
+    const advertiser = new MockNode(await createPeerId(), directory);
+    const discoverer = new MockNode(await createPeerId(), directory);
 
-    await advertiseRoom(node, "Room-42");
+    await advertiseRoom(advertiser, "Room-42");
 
     const discovered: PeerId[] = [];
-    for await (const id of discoverRoomPeers(node, "Room-42")) {
+    for await (const id of discoverRoomPeers(discoverer, "Room-42")) {
       discovered.push(id);
     }
 
-    expect(rendezvous.registered[0]).toBe("trivia-room:room-42");
-    expect(rendezvous.discoverRequests[0]).toBe("trivia-room:room-42");
-    expect(discovered.map((entry) => entry.toString())).toEqual([peer.toString()]);
+    expect(discovered.map((entry) => entry.toString())).toEqual([
+      advertiser.peerId.toString()
+    ]);
   });
 });

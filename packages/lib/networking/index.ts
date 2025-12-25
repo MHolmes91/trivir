@@ -1,20 +1,18 @@
 import { createLibp2p } from "libp2p";
-import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import { circuitRelayTransport } from "@libp2p/circuit-relay-v2";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { identify } from "@libp2p/identify";
 import { bootstrap } from "@libp2p/bootstrap";
-import { rendezvousClient } from "@libp2p/rendezvous";
 import { multiaddr } from "@multiformats/multiaddr";
 import { createEd25519PeerId } from "@libp2p/peer-id-factory";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
-export interface RendezvousService {
-  register: (namespace: string) => Promise<void>;
-  discover: (namespace: string) => AsyncIterable<unknown>;
+export interface RoomDirectory {
+  advertise: (namespace: string, peerId: PeerId) => Promise<void>;
+  discover: (namespace: string, selfPeerId: PeerId) => AsyncIterable<PeerId>;
 }
 
 export interface Libp2pLike {
@@ -22,15 +20,40 @@ export interface Libp2pLike {
   dial: (addr: Multiaddr) => Promise<unknown>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
-  services?: {
-    rendezvous?: RendezvousService;
+  roomDirectory?: RoomDirectory;
+}
+
+export function createInMemoryRoomDirectory(): RoomDirectory {
+  const rooms = new Map<string, Map<string, PeerId>>();
+
+  return {
+    advertise: async (namespace: string, peerId: PeerId) => {
+      const room = rooms.get(namespace) ?? new Map<string, PeerId>();
+      room.set(peerId.toString(), peerId);
+      rooms.set(namespace, room);
+    },
+    discover: async function* (namespace: string, selfPeerId: PeerId) {
+      const room = rooms.get(namespace);
+      if (!room) {
+        return;
+      }
+
+      for (const [id, peerId] of room) {
+        if (id !== selfPeerId.toString()) {
+          yield peerId;
+        }
+      }
+    }
   };
 }
+
+const defaultRoomDirectory = createInMemoryRoomDirectory();
 
 export interface CreateNetworkingNodeOptions {
   peerId?: PeerId;
   relayMultiaddrs?: string[];
   listenAddresses?: string[];
+  roomDirectory?: RoomDirectory;
 }
 
 export interface CreateTriviaPeerOptions extends CreateNetworkingNodeOptions {
@@ -60,6 +83,9 @@ export async function createNetworkingNode(
   const peerId = options.peerId ?? (await createPeerId());
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
   const listenAddresses = options.listenAddresses ?? ["/p2p-circuit", "/webrtc"];
+  const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
+
+  const { webRTC } = await import("@libp2p/webrtc");
 
   const node = await createLibp2p({
     peerId,
@@ -71,12 +97,14 @@ export async function createNetworkingNode(
     streamMuxers: [yamux()],
     peerDiscovery: relayMultiaddrs.length > 0 ? [bootstrap({ list: relayMultiaddrs })] : [],
     services: {
-      identify: identify(),
-      rendezvous: rendezvousClient()
+      identify: identify()
     }
   });
 
-  return node as Libp2pLike;
+  const libp2pNode = node as Libp2pLike;
+  libp2pNode.roomDirectory = roomDirectory;
+
+  return libp2pNode;
 }
 
 export async function connectToRelay(
@@ -91,22 +119,19 @@ export async function connectToRelay(
 }
 
 export async function advertiseRoom(node: Libp2pLike, roomCode: string): Promise<void> {
-  const rendezvous = getRendezvousService(node);
-  await rendezvous.register(roomNamespace(roomCode));
+  const directory = getRoomDirectory(node);
+  await directory.advertise(roomNamespace(roomCode), node.peerId);
 }
 
 export async function* discoverRoomPeers(
   node: Libp2pLike,
   roomCode: string
 ): AsyncGenerator<PeerId> {
-  const rendezvous = getRendezvousService(node);
+  const directory = getRoomDirectory(node);
   const namespace = roomNamespace(roomCode);
 
-  for await (const entry of rendezvous.discover(namespace)) {
-    const peerId = extractPeerId(entry);
-    if (peerId) {
-      yield peerId;
-    }
+  for await (const peerId of directory.discover(namespace, node.peerId)) {
+    yield peerId;
   }
 }
 
@@ -115,14 +140,20 @@ export async function createTriviaPeer(
 ): Promise<TriviaPeer> {
   const peerId = options.peerId ?? (await createPeerId());
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
+  const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
 
   const node = options.libp2pFactory
     ? await options.libp2pFactory(peerId)
     : await createNetworkingNode({
         peerId,
         relayMultiaddrs,
-        listenAddresses: options.listenAddresses
+        listenAddresses: options.listenAddresses,
+        roomDirectory
       });
+
+  if (!node.roomDirectory) {
+    node.roomDirectory = roomDirectory;
+  }
 
   if (options.autoStart !== false) {
     await node.start();
@@ -148,13 +179,8 @@ export async function createTriviaPeer(
   };
 }
 
-function getRendezvousService(node: Libp2pLike): RendezvousService {
-  const rendezvous = node.services?.rendezvous;
-  if (!rendezvous) {
-    throw new Error("Rendezvous service not configured");
-  }
-
-  return rendezvous;
+function getRoomDirectory(node: Libp2pLike): RoomDirectory {
+  return node.roomDirectory ?? defaultRoomDirectory;
 }
 
 function roomNamespace(roomCode: string): string {
@@ -166,11 +192,3 @@ function roomNamespace(roomCode: string): string {
   return `trivia-room:${normalized}`;
 }
 
-function extractPeerId(entry: unknown): PeerId | null {
-  if (entry && typeof entry === "object") {
-    const record = entry as { id?: PeerId; peerId?: PeerId };
-    return record.id ?? record.peerId ?? null;
-  }
-
-  return null;
-}

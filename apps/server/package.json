@@ -1,0 +1,10 @@
+{
+  "name": "@trivia-p2p/server",
+  "private": true,
+  "scripts": {
+    "dev": "bun test --watch",
+    "build": "bun test --pass-with-no-tests",
+    "test:unit": "bun test --pass-with-no-tests",
+    "test:e2e": "bun test --pass-with-no-tests"
+  }
+}

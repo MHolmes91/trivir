@@ -16,7 +16,6 @@
     "@libp2p/identify": "latest",
     "@libp2p/interface-peer-id": "latest",
     "@libp2p/peer-id-factory": "latest",
-    "@libp2p/rendezvous": "latest",
     "@libp2p/websockets": "latest",
     "@libp2p/webrtc": "latest",
     "@multiformats/multiaddr": "latest",

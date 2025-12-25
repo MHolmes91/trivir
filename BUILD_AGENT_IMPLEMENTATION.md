@@ -42,6 +42,7 @@ Steps:
 3. Integrate Tailwind config into Web Components UI build.
 4. Add scripts: `dev`, `build`, `test:unit`, `test:e2e`.
 5. After completing each step, commit the changes to git with a concise message.
+6. Track step status in this file: mark steps as in progress when they are the current prompted step (or you are asked to revisit a prior step), and mark steps as completed once I prompt you to run the next step.
 
 Tests: No tests yet here.
 

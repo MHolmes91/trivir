@@ -2,6 +2,8 @@
 
 Tech stack: TypeScript on Bun (runtime & workspaces), Web Components + Tailwind for UI, Playwright for BDD e2e tests, Bun test runner for unit tests, libp2p for peer networking, Gossipsub for events, GunDB for shared state, Docker + SST for deployment.
 
+IMPORTANT: Track step status in this file: mark steps as in progress when they are the current prompted step (or you are asked to revisit a prior step), and mark steps as completed once I prompt you to run the next step.
+
 ---
 
 ## Monorepo Directory Structure
@@ -33,6 +35,8 @@ Tech stack: TypeScript on Bun (runtime & workspaces), Web Components + Tailwind 
 
 ### 1) Monorepo Structure
 
+Status: completed
+
 Goal: Setup Bun workspaces + Tailwind + shared configs.
 
 Steps:
@@ -42,11 +46,12 @@ Steps:
 3. Integrate Tailwind config into Web Components UI build.
 4. Add scripts: `dev`, `build`, `test:unit`, `test:e2e`.
 5. After completing each step, commit the changes to git with a concise message.
-6. Track step status in this file: mark steps as in progress when they are the current prompted step (or you are asked to revisit a prior step), and mark steps as completed once I prompt you to run the next step.
 
 Tests: No tests yet here.
 
 ### 2) Peer libp2p Networking Module
+
+Status: in progress
 
 Goal: Browser peers create libp2p node with WebRTC + Circuit Relay v2 fallback.
 

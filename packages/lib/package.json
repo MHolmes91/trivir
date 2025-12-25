@@ -1,0 +1,25 @@
+{
+  "name": "@trivia-p2p/lib",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun test --watch",
+    "build": "bun build ./networking/index.ts --outdir ./dist",
+    "test:unit": "bun test",
+    "test:e2e": "bun test"
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "latest",
+    "@chainsafe/libp2p-yamux": "latest",
+    "@libp2p/bootstrap": "latest",
+    "@libp2p/circuit-relay-v2": "latest",
+    "@libp2p/identify": "latest",
+    "@libp2p/interface-peer-id": "latest",
+    "@libp2p/peer-id-factory": "latest",
+    "@libp2p/rendezvous": "latest",
+    "@libp2p/websockets": "latest",
+    "@libp2p/webrtc": "latest",
+    "@multiformats/multiaddr": "latest",
+    "libp2p": "latest"
+  }
+}

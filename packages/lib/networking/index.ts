@@ -24,6 +24,9 @@ import type {
   TriviaPeer,
 } from "./types";
 
+/**
+ * Creates an in-memory room directory for peer discovery.
+ */
 export function createInMemoryRoomDirectory(): RoomDirectory {
   const rooms = new Map<string, Map<string, PeerId>>();
 
@@ -151,9 +154,13 @@ export async function refreshPeerId(
   return createPeerId({ storage, refresh: true });
 }
 
+/**
+ * Builds a libp2p node configured for relays and trivia pubsub.
+ */
 export async function createNetworkingNode(
   options: CreateNetworkingNodeOptions = {},
 ): Promise<Libp2pLike> {
+  // Resolve identity, relay configuration, and listen addresses.
   const peerId =
     options.peerId ??
     (await createPeerId({
@@ -167,8 +174,10 @@ export async function createNetworkingNode(
   ];
   const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
 
+  // Load WebRTC transport lazily to keep bundles lean.
   const { webRTC } = await import("@libp2p/webrtc");
 
+  // Create the libp2p node with transports, security, and pubsub services.
   const node = await createLibp2p({
     peerId,
     addresses: {
@@ -185,6 +194,7 @@ export async function createNetworkingNode(
     },
   });
 
+  // Attach room discovery so consumers can advertise/discover peers.
   const libp2pNode = node as Libp2pLike;
   libp2pNode.roomDirectory = roomDirectory;
 
@@ -222,9 +232,13 @@ export async function* discoverRoomPeers(
   }
 }
 
+/**
+ * Creates a trivia peer with optional auto-start, relay dialing, and room setup.
+ */
 export async function createTriviaPeer(
   options: CreateTriviaPeerOptions = {},
 ): Promise<TriviaPeer> {
+  // Resolve identity and networking configuration for this peer.
   const peerId =
     options.peerId ??
     (await createPeerId({
@@ -234,6 +248,7 @@ export async function createTriviaPeer(
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
   const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
 
+  // Create or inject the libp2p node implementation.
   let node: Libp2pLike;
 
   if (options.libp2pFactory) {
@@ -247,10 +262,12 @@ export async function createTriviaPeer(
     });
   }
 
+  // Ensure the node can advertise/discover room peers.
   if (!node.roomDirectory) {
     node.roomDirectory = roomDirectory;
   }
 
+  // Optional lifecycle automation for start, relay dialing, and advertising.
   if (options.autoStart !== false) {
     await node.start();
   }
@@ -265,6 +282,7 @@ export async function createTriviaPeer(
     await advertiseRoom(node, options.roomCode);
   }
 
+  // Return a focused peer API for callers.
   return {
     node,
     peerId: node.peerId,

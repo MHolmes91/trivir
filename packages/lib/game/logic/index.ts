@@ -90,6 +90,7 @@ export function createTriviaGame(options: CreateTriviaGameOptions): TriviaGame {
     throw new Error("Room code is required");
   }
 
+  // Resolve injected dependencies and game configuration.
   const now = options.now ?? Date.now;
   const random = options.random ?? Math.random;
   const roundDurationMs = options.roundDurationMs ?? DefaultRoundDurationMs;
@@ -105,6 +106,7 @@ export function createTriviaGame(options: CreateTriviaGameOptions): TriviaGame {
     throw new Error("Question count must be positive");
   }
 
+  // Initialize mutable game state and derived helpers.
   const state: TriviaGameState = {
     roomCode,
     status: GameStatus.Lobby,
@@ -115,10 +117,12 @@ export function createTriviaGame(options: CreateTriviaGameOptions): TriviaGame {
     scores: [],
   };
 
+  // Track answers during the active round only.
   const answersByPlayer = new Map<string, PlayerAnswer>();
 
   const getState = (): TriviaGameState => cloneState(state);
 
+  // Gate entry and manage player presence.
   const canJoin = (password?: string): boolean => {
     if (!roomPassword) {
       return true;
@@ -158,6 +162,7 @@ export function createTriviaGame(options: CreateTriviaGameOptions): TriviaGame {
     return { ...player };
   };
 
+  // Game lifecycle transitions: start, round flow, and completion.
   const startGame = (): TriviaGameState => {
     if (state.status !== GameStatus.Lobby) {
       throw new Error("Game already started");

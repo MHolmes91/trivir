@@ -26,6 +26,7 @@ const DefaultPutTimeoutMs = 200;
 export async function createRoomStateDb(
   options: CreateStateDbOptions,
 ): Promise<RoomStateDb> {
+  // Create or reuse the Gun instance scoped to the room.
   const gun =
     options.gun ??
     (Gun({
@@ -34,6 +35,8 @@ export async function createRoomStateDb(
       multicast: false,
     }) as unknown as GunChain);
   const keys = options.keys ?? (await SEA.pair());
+
+  // Build room subtrees and index nodes for fast lookups.
   const room = gun.get("rooms").get(normalizeRoomCode(options.roomCode));
   const players = room.get<PlayerState>("players");
   const scores = room.get<ScoreState>("scores");
@@ -42,6 +45,7 @@ export async function createRoomStateDb(
   const scoreIndex = room.get<boolean>("scoreIndex");
   const eventIndex = room.get<boolean>("eventIndex");
 
+  // Return room-scoped helpers for mutations and queries.
   return {
     gun,
     keys,
@@ -103,6 +107,9 @@ export async function createRoomStateDb(
   };
 }
 
+/**
+ * Bridges Gun message traffic between two peers.
+ */
 export function linkGunPeers(left: GunInstance, right: GunInstance): void {
   left.on?.("out", (message: unknown) => {
     right.on?.("in", message);

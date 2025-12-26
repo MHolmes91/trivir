@@ -70,6 +70,9 @@ export function encodeEvent(event: TriviaEvent): Uint8Array {
   return Encoder.encode(JSON.stringify(event));
 }
 
+/**
+ * Parses a pubsub payload and validates it as a trivia event.
+ */
 export function decodeEvent(data: Uint8Array): TriviaEvent | null {
   try {
     const parsed = JSON.parse(Decoder.decode(data));

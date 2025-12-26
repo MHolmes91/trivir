@@ -106,7 +106,7 @@ Implementation: `packages/lib/state/db/index.ts` using GunDB + SEA.
 
 ### 5) Trivia Game Business Logic
 
-Status: in progress
+Status: completed
 
 Goal: Static multiple choice questions + gameplay flow.
 
@@ -136,6 +136,7 @@ Goal: Elect a new host when the host peer disconnects.
 
 BDD unit tests:
 
+- Each peer shoudd
 - Simulate 3 peers, remove host, verify next host selection.
 - Deterministic fallback rules (PeerID sort / timestamp).
 

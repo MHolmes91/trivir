@@ -12,7 +12,7 @@ import {
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
-const RELAY_MULTIADDR =
+const RelayMultiaddr =
   "/dns4/relay.example.com/tcp/443/wss/p2p/12D3KooWJmZCWny8tX6N4ydNfJgwJ2b9wH2iT4sQQPmvxg7zqyyx";
 
 class MockNode implements Libp2pLike {
@@ -53,10 +53,10 @@ describe("networking", () => {
   it("Peer connects to relay multiaddr", async () => {
     const node = new MockNode(await createPeerId());
 
-    await connectToRelay(node, RELAY_MULTIADDR);
+    await connectToRelay(node, RelayMultiaddr);
 
     expect(node.dialed).toHaveLength(1);
-    expect(node.dialed[0].toString()).toBe(RELAY_MULTIADDR);
+    expect(node.dialed[0].toString()).toBe(RelayMultiaddr);
   });
 
   it("Peer advertises and discovers room code peers", async () => {

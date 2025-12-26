@@ -12,6 +12,13 @@
 
 - When adding dependencies, pin to the latest minor with caret versions (example: `^1.2.0`) and update the lockfile.
 
+## Code Conventions
+
+- Constants and enums use PascalCase.
+- Constant objects should be expressed as `const enum` values.
+- If a file defines more than three types/interfaces or those types are shared, move them into a colocated `types.ts`.
+- GunDB tests should prefer real Gun instances; mocks are a last resort for unit tests and must be called out explicitly.
+
 ## Reference Docs
 
 - Playwright: <https://playwright.dev/docs/intro>, <https://playwright.dev/docs/test-typescript> — use for e2e test authoring and fixtures.

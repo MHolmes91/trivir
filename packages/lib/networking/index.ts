@@ -5,23 +5,26 @@ import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { identify } from "@libp2p/identify";
 import { bootstrap } from "@libp2p/bootstrap";
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { multiaddr } from "@multiformats/multiaddr";
 import { createEd25519PeerId } from "@libp2p/peer-id-factory";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Multiaddr } from "@multiformats/multiaddr";
+import { TriviaRoomPrefix } from "../constants";
+import type {
+  CreateNetworkingNodeOptions,
+  CreateTriviaPeerOptions,
+  Libp2pLike,
+  RoomDirectory,
+  TriviaPeer,
+} from "./types";
 
-export interface RoomDirectory {
-  advertise: (namespace: string, peerId: PeerId) => Promise<void>;
-  discover: (namespace: string, selfPeerId: PeerId) => AsyncIterable<PeerId>;
-}
-
-export interface Libp2pLike {
-  peerId: PeerId;
-  dial: (addr: Multiaddr) => Promise<unknown>;
-  start: () => Promise<void>;
-  stop: () => Promise<void>;
-  roomDirectory?: RoomDirectory;
-}
+export type {
+  CreateNetworkingNodeOptions,
+  CreateTriviaPeerOptions,
+  Libp2pLike,
+  RoomDirectory,
+  TriviaPeer,
+} from "./types";
 
 export function createInMemoryRoomDirectory(): RoomDirectory {
   const rooms = new Map<string, Map<string, PeerId>>();
@@ -47,31 +50,7 @@ export function createInMemoryRoomDirectory(): RoomDirectory {
   };
 }
 
-const defaultRoomDirectory = createInMemoryRoomDirectory();
-
-export interface CreateNetworkingNodeOptions {
-  peerId?: PeerId;
-  relayMultiaddrs?: string[];
-  listenAddresses?: string[];
-  roomDirectory?: RoomDirectory;
-}
-
-export interface CreateTriviaPeerOptions extends CreateNetworkingNodeOptions {
-  roomCode?: string;
-  autoStart?: boolean;
-  autoDialRelay?: boolean;
-  autoAdvertiseRoom?: boolean;
-  libp2pFactory?: (peerId: PeerId) => Promise<Libp2pLike>;
-}
-
-export interface TriviaPeer {
-  node: Libp2pLike;
-  peerId: PeerId;
-  connectToRelay: (relayMultiaddr: string) => Promise<void>;
-  advertiseRoom: (roomCode: string) => Promise<void>;
-  discoverRoomPeers: (roomCode: string) => AsyncGenerator<PeerId>;
-  stop: () => Promise<void>;
-}
+const DefaultRoomDirectory = createInMemoryRoomDirectory();
 
 export async function createPeerId(): Promise<PeerId> {
   return createEd25519PeerId();
@@ -86,7 +65,7 @@ export async function createNetworkingNode(
     "/p2p-circuit",
     "/webrtc",
   ];
-  const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
+  const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
 
   const { webRTC } = await import("@libp2p/webrtc");
 
@@ -102,6 +81,7 @@ export async function createNetworkingNode(
       relayMultiaddrs.length > 0 ? [bootstrap({ list: relayMultiaddrs })] : [],
     services: {
       identify: identify(),
+      pubsub: gossipsub({ emitSelf: false }),
     },
   });
 
@@ -147,7 +127,7 @@ export async function createTriviaPeer(
 ): Promise<TriviaPeer> {
   const peerId = options.peerId ?? (await createPeerId());
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
-  const roomDirectory = options.roomDirectory ?? defaultRoomDirectory;
+  const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
 
   let node: Libp2pLike;
 
@@ -193,7 +173,7 @@ export async function createTriviaPeer(
 }
 
 function getRoomDirectory(node: Libp2pLike): RoomDirectory {
-  return node.roomDirectory ?? defaultRoomDirectory;
+  return node.roomDirectory ?? DefaultRoomDirectory;
 }
 
 function roomNamespace(roomCode: string): string {
@@ -202,5 +182,5 @@ function roomNamespace(roomCode: string): string {
     throw new Error("Room code is required");
   }
 
-  return `trivia-room:${normalized}`;
+  return `${TriviaRoomPrefix}${normalized}`;
 }

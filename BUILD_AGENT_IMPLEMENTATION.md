@@ -51,7 +51,7 @@ Tests: No tests yet here.
 
 ### 2) Peer libp2p Networking Module
 
-Status: in progress
+Status: completed
 
 Goal: Browser peers create libp2p node with WebRTC + Circuit Relay v2 fallback.
 
@@ -69,6 +69,8 @@ Implementation:
 Docs: libp2p JS + WebRTC guides.
 
 ### 3) Peer Gossipsub Pub/Sub Events
+
+Status: completed
 
 Goal: Broadcast core trivia events via Gossipsub.
 
@@ -90,6 +92,8 @@ BDD unit tests:
 Implementation: `packages/lib/pubsub/events.ts`.
 
 ### 4) Peer GunDB Shared State (db.ts)
+
+Status: completed
 
 Goal: Store persistent shared state: players, scores, event logs.
 

@@ -148,9 +148,33 @@ BDD unit tests:
 
 Implementation: `packages/lib/networking/host-election/index.ts`.
 
-### 7) Connect 3 Peers Locally (Dev/Debug)
+### 7) Headless Client Harness (No UI)
 
-Status: in progress
+Status: pending
+
+Goal: Provide a basic client module (no UI) to start peers and drive scenarios for Step 9 Playwright tests.
+
+BDD unit tests:
+
+- Can boot a peer with a room code and connect to the relay.
+- Can publish/receive pubsub events for a room.
+
+Implementation: `apps/client/logic/headless/index.ts` + a minimal CLI entry (`apps/client/logic/cli.ts`) for spawning peers.
+
+### 8) Basic Relay + WebRTC Server (Local)
+
+Status: pending
+
+Goal: Provide a minimal relay + WebRTC signalling server for local dev and Step 9 tests.
+
+BDD unit tests:
+
+- Relay accepts reservations from browser peers.
+- Relay advertises a reachable WebSocket multiaddr.
+
+Implementation: `apps/server/relay/basic.ts` using `@libp2p/circuit-relay-v2`, `@libp2p/websockets`, and `@chainsafe/libp2p-gossipsub`.
+
+### 9) Connect 3 Peers Locally (Dev/Debug)
 
 Goal: Validate connections among 3 browser peers during development.
 
@@ -163,7 +187,7 @@ BDD e2e tests (Playwright in `playwright/`):
 
 Implementation: Stories like "3 players join room, game starts, all peers sync events".
 
-### 8) Peer UI — Web Components + Tailwind
+### 10) Peer UI — Web Components + Tailwind
 
 Goal: Build UI with Web Components and Tailwind for in-browser clients.
 
@@ -176,7 +200,7 @@ Playwright BDD e2e tests:
 
 Implementation: `apps/client/ui` Web Component files + Tailwind classes.
 
-### 9) Server Matchmaking Module
+### 11) Server Matchmaking Module
 
 Goal: Server stores room codes + peer connection info.
 
@@ -192,7 +216,26 @@ API endpoints:
 
 Implementation: `apps/server/matchmaking.ts`.
 
-### 10) Server Relay Module
+### 12) libp2p Relay + WebRTC Improvements
+
+Goal: Implement the relay, peer discovery, and NAT traversal improvements described in `BUILD_AGENT_LIBP2P_IMPROVEMENT.md`.
+
+Steps:
+
+1. Implement public relay node (WebSockets + GossipSub + Circuit Relay v2).
+2. Implement browser/peer node updates (WebRTC + WebSockets + relay client mode).
+3. Add GossipSub discovery channel for multiaddr announcements.
+4. Implement dialing flow with relay fallback.
+5. Add optional DCUtR/hole punching and AutoNAT hooks (behind flags).
+6. Add logging for peer connect/discovery and transport usage.
+
+Implementation:
+
+- `apps/server/relay.ts`
+- `packages/lib/networking/index.ts`
+- `packages/lib/pubsub/events/index.ts`
+
+### 13) Server Relay Module
 
 Goal: Always-on libp2p relay service.
 
@@ -203,7 +246,7 @@ BDD unit tests:
 
 Implementation: `apps/server/relay.ts` using `@libp2p/circuit-relay-v2`.
 
-### 11) Server Deployment (Docker + SST)
+### 14) Server Deployment (Docker + SST)
 
 Goal: Containerize and deploy the server using SST + Docker Compose locally and SST for prod.
 
@@ -213,7 +256,7 @@ Steps:
 2. `docker-compose.yml` to spin up server + optional Redis.
 3. SST config to deploy to AWS (ECS/Fargate).
 
-### 12) Custom Questions Per Room
+### 15) Custom Questions Per Room
 
 Goal: Allow the room host to upload or input custom questions.
 

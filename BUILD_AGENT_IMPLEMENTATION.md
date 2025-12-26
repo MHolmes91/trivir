@@ -163,8 +163,6 @@ Implementation: `apps/client/logic/headless/index.ts` + a minimal CLI entry (`ap
 
 ### 8) Basic Relay + WebRTC Server (Local)
 
-Status: pending
-
 Goal: Provide a minimal relay + WebRTC signalling server for local dev and Step 9 tests.
 
 BDD unit tests:

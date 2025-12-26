@@ -6,6 +6,7 @@ import {
   createPeerId,
   createTriviaPeer,
   discoverRoomPeers,
+  electRoomHost,
   refreshPeerId,
 } from "./index";
 import type { Libp2pLike, RoomDirectory } from "./types";
@@ -95,5 +96,27 @@ describe("networking", () => {
     expect(discovered.map((entry) => entry.toString())).toEqual([
       advertiser.peerId.toString(),
     ]);
+  });
+
+  it("Elects host using join timestamps and room discovery", async () => {
+    const directory = createInMemoryRoomDirectory();
+    const peerA = new MockNode(await createPeerId(), directory);
+    const peerB = new MockNode(await createPeerId(), directory);
+    const peerC = new MockNode(await createPeerId(), directory);
+
+    await advertiseRoom(peerA, "Room-Host");
+    await advertiseRoom(peerB, "Room-Host");
+    await advertiseRoom(peerC, "Room-Host");
+
+    const selection = await electRoomHost(peerA, "Room-Host", {
+      selfJoinedAt: 200,
+      candidates: [
+        { peerId: peerB.peerId, joinedAt: 100 },
+        { peerId: peerC.peerId, joinedAt: 300 },
+      ],
+    });
+
+    expect(selection?.peerId).toBe(peerB.peerId.toString());
+    expect(selection?.joinedAt).toBe(100);
   });
 });

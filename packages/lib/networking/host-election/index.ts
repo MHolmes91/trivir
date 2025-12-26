@@ -1,18 +1,8 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-
-export interface HostCandidate {
-  peerId: PeerId | string;
-  joinedAt?: number;
-}
-
-export interface HostElectionOptions {
-  currentHostId?: PeerId | string | null;
-}
-
-export interface HostSelection {
-  peerId: string;
-  joinedAt?: number;
-}
+import type {
+  HostCandidate,
+  HostElectionOptions,
+  HostSelection,
+} from "../types";
 
 export function electHost(
   candidates: HostCandidate[],
@@ -101,6 +91,6 @@ function compareCandidates(a: HostSelection, b: HostSelection): number {
   return a.peerId < b.peerId ? -1 : 1;
 }
 
-function peerIdToString(peerId: PeerId | string): string {
+function peerIdToString(peerId: HostCandidate["peerId"]): string {
   return typeof peerId === "string" ? peerId : peerId.toString();
 }

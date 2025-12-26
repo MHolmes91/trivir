@@ -48,5 +48,28 @@ export interface TriviaPeer {
   connectToRelay: (relayMultiaddr: string) => Promise<void>;
   advertiseRoom: (roomCode: string) => Promise<void>;
   discoverRoomPeers: (roomCode: string) => AsyncGenerator<PeerId>;
+  electRoomHost: (
+    roomCode: string,
+    options?: ElectRoomHostOptions,
+  ) => Promise<HostSelection | null>;
   stop: () => Promise<void>;
+}
+
+export interface HostCandidate {
+  peerId: PeerId | string;
+  joinedAt?: number;
+}
+
+export interface HostElectionOptions {
+  currentHostId?: PeerId | string | null;
+}
+
+export interface HostSelection {
+  peerId: string;
+  joinedAt?: number;
+}
+
+export interface ElectRoomHostOptions extends HostElectionOptions {
+  candidates?: HostCandidate[];
+  selfJoinedAt?: number;
 }

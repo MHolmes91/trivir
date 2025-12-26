@@ -18,11 +18,15 @@ import type {
   CreateNetworkingNodeOptions,
   CreatePeerIdOptions,
   CreateTriviaPeerOptions,
+  ElectRoomHostOptions,
+  HostCandidate,
+  HostSelection,
   Libp2pLike,
   PeerIdStorage,
   RoomDirectory,
   TriviaPeer,
 } from "./types";
+import { electHost } from "./host-election";
 
 /**
  * Creates an in-memory room directory for peer discovery.
@@ -233,6 +237,28 @@ export async function* discoverRoomPeers(
 }
 
 /**
+ * Elects the active host for a room using discovery and metadata.
+ */
+export async function electRoomHost(
+  node: Libp2pLike,
+  roomCode: string,
+  options: ElectRoomHostOptions = {},
+): Promise<HostSelection | null> {
+  const candidates: HostCandidate[] = [...(options.candidates ?? [])];
+
+  candidates.push({
+    peerId: node.peerId,
+    joinedAt: options.selfJoinedAt,
+  });
+
+  for await (const peerId of discoverRoomPeers(node, roomCode)) {
+    candidates.push({ peerId });
+  }
+
+  return electHost(candidates, options);
+}
+
+/**
  * Creates a trivia peer with optional auto-start, relay dialing, and room setup.
  */
 export async function createTriviaPeer(
@@ -290,6 +316,8 @@ export async function createTriviaPeer(
       connectToRelay(node, relayMultiaddr),
     advertiseRoom: async (roomCode: string) => advertiseRoom(node, roomCode),
     discoverRoomPeers: (roomCode: string) => discoverRoomPeers(node, roomCode),
+    electRoomHost: (roomCode: string, options?: ElectRoomHostOptions) =>
+      electRoomHost(node, roomCode, options),
     stop: async () => node.stop(),
   };
 }

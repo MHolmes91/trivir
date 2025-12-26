@@ -17,6 +17,7 @@
 - Constants and enums use PascalCase.
 - Constant objects should be expressed as `const enum` values.
 - If a file defines more than three types/interfaces or those types are shared, move them into a colocated `types.ts`.
+- Do not re-export types from implementation files; import them from `types.ts` instead.
 - GunDB tests should prefer real Gun instances; mocks are a last resort for unit tests and must be called out explicitly.
 
 ## Reference Docs

@@ -26,7 +26,7 @@ type MockGunData = {
   children: Map<string, MockGunData>;
 };
 
-// Test-only fake; prefer real Gun instances for integration coverage.
+// Test-only fake; not preferred over real Gun instances.
 class MockGunNode {
   private readonly data: MockGunData;
   private readonly mapMode: boolean;
@@ -76,7 +76,10 @@ class MockGunNode {
     cb(this.data.value, this.data.key);
   }
 
-  on(_event: string, _handler: unknown): void {}
+  on(event: string, handler: unknown): void {
+    void event;
+    void handler;
+  }
 }
 
 function createMockGun(): MockGunNode {

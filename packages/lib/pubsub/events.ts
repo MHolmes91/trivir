@@ -9,14 +9,6 @@ import {
 import { TriviaRoomPrefix } from "../constants";
 
 export { TriviaEventTypes } from "./types";
-export type {
-  CreateTriviaPubsubOptions,
-  PubsubMessageEvent,
-  PubsubService,
-  TriviaEvent,
-  TriviaEventType,
-  TriviaPubsub,
-} from "./types";
 
 const Encoder = new TextEncoder();
 const Decoder = new TextDecoder();

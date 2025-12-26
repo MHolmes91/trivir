@@ -11,17 +11,6 @@ import type {
   ScoreState,
 } from "./types";
 
-export type {
-  CreateStateDbOptions,
-  EventLogEntry,
-  GunChain,
-  GunInstance,
-  GunKeyPair,
-  PlayerState,
-  RoomStateDb,
-  ScoreState,
-} from "./types";
-
 type MapEntry<T> = {
   key: string;
   value: T;

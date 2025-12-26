@@ -18,14 +18,6 @@ import type {
   TriviaPeer,
 } from "./types";
 
-export type {
-  CreateNetworkingNodeOptions,
-  CreateTriviaPeerOptions,
-  Libp2pLike,
-  RoomDirectory,
-  TriviaPeer,
-} from "./types";
-
 export function createInMemoryRoomDirectory(): RoomDirectory {
   const rooms = new Map<string, Map<string, PeerId>>();
 

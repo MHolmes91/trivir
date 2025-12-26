@@ -106,6 +106,8 @@ Implementation: `packages/lib/state/db.ts` using GunDB + SEA.
 
 ### 5) Trivia Game Business Logic
 
+Status: in progress
+
 Goal: Static multiple choice questions + gameplay flow.
 
 Behaviors to implement and test:
@@ -116,11 +118,14 @@ Behaviors to implement and test:
 - Timer enforcement.
 - Scoring rules.
 - Join/leave updates.
+- Define question set as static JSON array.
+- Choose questions randomly from the set.
 
 BDD unit tests:
 
 - Validate game lifecycle transitions.
 - Correct scoring logic.
+- Validate choice of questions from JSON
 - Timer expiration transitions.
 
 Implementation: `packages/lib/game/logic.ts`.

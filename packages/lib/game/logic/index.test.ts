@@ -3,8 +3,8 @@ import {
   createTriviaGame,
   selectTriviaQuestions,
   TriviaQuestionSet,
-} from "./logic";
-import { GameStatus, RoundStatus } from "./types";
+} from "./index";
+import { GameStatus, RoundStatus } from "../types";
 
 function createSequenceRandom(values: number[]): () => number {
   let index = 0;

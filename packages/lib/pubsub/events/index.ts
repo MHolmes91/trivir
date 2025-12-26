@@ -5,14 +5,17 @@ import {
   type TriviaEvent,
   type TriviaEventType,
   type TriviaPubsub,
-} from "./types";
-import { TriviaRoomPrefix } from "../constants";
+} from "../types";
+import { TriviaRoomPrefix } from "../../constants";
 
-export { TriviaEventTypes } from "./types";
+export { TriviaEventTypes } from "../types";
 
 const Encoder = new TextEncoder();
 const Decoder = new TextDecoder();
 
+/**
+ * Wraps pubsub for room-scoped trivia events and subscriptions.
+ */
 export async function createTriviaPubsub(
   options: CreateTriviaPubsubOptions,
 ): Promise<TriviaPubsub> {
@@ -60,7 +63,7 @@ export async function createTriviaPubsub(
 }
 
 export function isTriviaEventType(value: unknown): value is TriviaEventType {
-  return TriviaEventTypes.includes(value as TriviaEventType);
+  return TriviaEventTypes.some((type) => type === value);
 }
 
 export function encodeEvent(event: TriviaEvent): Uint8Array {
@@ -84,8 +87,11 @@ export function isTriviaEvent(value: unknown): value is TriviaEvent {
   if (!value || typeof value !== "object") {
     return false;
   }
+  if (!("type" in value)) {
+    return false;
+  }
 
-  const record = value as Record<string, unknown>;
+  const record = value as { type?: unknown };
   return isTriviaEventType(record.type);
 }
 

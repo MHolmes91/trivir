@@ -1,11 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { createTriviaPubsub } from "./events";
+import { createTriviaPubsub } from "./index";
 import {
   TriviaEventTypes,
   type PubsubMessageEvent,
   type PubsubService,
   type TriviaEvent,
-} from "./types";
+} from "../types";
 
 type MessageListener = (event: PubsubMessageEvent) => void;
 

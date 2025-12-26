@@ -6,9 +6,9 @@ import {
   createPeerId,
   createTriviaPeer,
   discoverRoomPeers,
-  type Libp2pLike,
-  type RoomDirectory,
+  refreshPeerId,
 } from "./index";
+import type { Libp2pLike, RoomDirectory } from "./types";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
@@ -48,6 +48,27 @@ describe("networking", () => {
     });
 
     expect(first.peerId.toString()).not.toBe(second.peerId.toString());
+  });
+
+  it("Persists peer ID in storage and can refresh", async () => {
+    let stored: string | null = null;
+    const storage = {
+      get: () => stored,
+      set: (value: string) => {
+        stored = value;
+      },
+      clear: () => {
+        stored = null;
+      },
+    };
+
+    const first = await createPeerId({ storage });
+    const second = await createPeerId({ storage });
+
+    expect(second.toString()).toBe(first.toString());
+
+    const refreshed = await refreshPeerId({ storage });
+    expect(refreshed.toString()).not.toBe(first.toString());
   });
 
   it("Peer connects to relay multiaddr", async () => {

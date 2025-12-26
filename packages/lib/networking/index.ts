@@ -7,13 +7,19 @@ import { identify } from "@libp2p/identify";
 import { bootstrap } from "@libp2p/bootstrap";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { multiaddr } from "@multiformats/multiaddr";
-import { createEd25519PeerId } from "@libp2p/peer-id-factory";
+import {
+  createEd25519PeerId,
+  createFromProtobuf,
+  exportToProtobuf,
+} from "@libp2p/peer-id-factory";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { TriviaRoomPrefix } from "../constants";
+import { TriviaPeerIdStorageKey, TriviaRoomPrefix } from "../constants";
 import type {
   CreateNetworkingNodeOptions,
+  CreatePeerIdOptions,
   CreateTriviaPeerOptions,
   Libp2pLike,
+  PeerIdStorage,
   RoomDirectory,
   TriviaPeer,
 } from "./types";
@@ -44,14 +50,116 @@ export function createInMemoryRoomDirectory(): RoomDirectory {
 
 const DefaultRoomDirectory = createInMemoryRoomDirectory();
 
-export async function createPeerId(): Promise<PeerId> {
-  return createEd25519PeerId();
+/**
+ * Returns a localStorage-backed peer id store when available.
+ */
+export function createLocalStoragePeerIdStorage(
+  storageKey: string = TriviaPeerIdStorageKey,
+): PeerIdStorage | null {
+  const localStorage = getLocalStorage();
+  if (!localStorage) {
+    return null;
+  }
+
+  return {
+    get: () => localStorage.getItem(storageKey),
+    set: (value: string) => localStorage.setItem(storageKey, value),
+    clear: () => localStorage.removeItem(storageKey),
+  };
+}
+
+function resolvePeerIdStorage(
+  storage: PeerIdStorage | null | undefined,
+): PeerIdStorage | null {
+  if (storage === null) {
+    return null;
+  }
+  return storage ?? createLocalStoragePeerIdStorage();
+}
+
+function getLocalStorage(): Storage | null {
+  if (typeof globalThis === "undefined") {
+    return null;
+  }
+  if ("localStorage" in globalThis) {
+    return globalThis.localStorage;
+  }
+  return null;
+}
+
+function encodeBase64(value: Uint8Array): string {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(value).toString("base64");
+  }
+  if (typeof btoa !== "undefined") {
+    const text = String.fromCharCode(...value);
+    return btoa(text);
+  }
+  throw new Error("Base64 encoding is not supported in this environment");
+}
+
+function decodeBase64(value: string): Uint8Array {
+  if (typeof Buffer !== "undefined") {
+    return Uint8Array.from(Buffer.from(value, "base64"));
+  }
+  if (typeof atob !== "undefined") {
+    const text = atob(value);
+    const bytes = new Uint8Array(text.length);
+    for (let index = 0; index < text.length; index += 1) {
+      bytes[index] = text.charCodeAt(index);
+    }
+    return bytes;
+  }
+  throw new Error("Base64 decoding is not supported in this environment");
+}
+
+/**
+ * Creates a peer identity, reusing a stored one when available.
+ */
+export async function createPeerId(
+  options: CreatePeerIdOptions = {},
+): Promise<PeerId> {
+  const storage = resolvePeerIdStorage(options.storage);
+  if (storage && !options.refresh) {
+    const stored = storage.get();
+    if (stored) {
+      try {
+        const peerId = await createFromProtobuf(decodeBase64(stored));
+        return peerId as PeerId;
+      } catch {
+        storage.clear();
+      }
+    }
+  }
+
+  const generated = await createEd25519PeerId();
+  const peerId = generated as PeerId;
+  if (storage) {
+    storage.set(encodeBase64(exportToProtobuf(generated)));
+  }
+  return peerId;
+}
+
+/**
+ * Clears the stored peer identity and creates a fresh one.
+ */
+export async function refreshPeerId(
+  options: CreatePeerIdOptions = {},
+): Promise<PeerId> {
+  const storage = resolvePeerIdStorage(options.storage);
+  storage?.clear();
+  return createPeerId({ storage, refresh: true });
 }
 
 export async function createNetworkingNode(
   options: CreateNetworkingNodeOptions = {},
 ): Promise<Libp2pLike> {
-  const peerId = options.peerId ?? (await createPeerId());
+  const peerId =
+    options.peerId ??
+    (await createPeerId({
+      storage: options.peerIdStorage,
+      refresh: options.refreshPeerId,
+    }));
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
   const listenAddresses = options.listenAddresses ?? [
     "/p2p-circuit",
@@ -117,7 +225,12 @@ export async function* discoverRoomPeers(
 export async function createTriviaPeer(
   options: CreateTriviaPeerOptions = {},
 ): Promise<TriviaPeer> {
-  const peerId = options.peerId ?? (await createPeerId());
+  const peerId =
+    options.peerId ??
+    (await createPeerId({
+      storage: options.peerIdStorage,
+      refresh: options.refreshPeerId,
+    }));
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
   const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
 
@@ -158,8 +271,7 @@ export async function createTriviaPeer(
     connectToRelay: async (relayMultiaddr: string) =>
       connectToRelay(node, relayMultiaddr),
     advertiseRoom: async (roomCode: string) => advertiseRoom(node, roomCode),
-    discoverRoomPeers: async (roomCode: string) =>
-      discoverRoomPeers(node, roomCode),
+    discoverRoomPeers: (roomCode: string) => discoverRoomPeers(node, roomCode),
     stop: async () => node.stop(),
   };
 }

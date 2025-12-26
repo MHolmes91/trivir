@@ -4,8 +4,8 @@
   "scripts": {
     "dev": "bun test --watch",
     "build": "bun test --pass-with-no-tests",
-    "test:unit": "bun test --pass-with-no-tests",
-    "test:e2e": "bun test --pass-with-no-tests",
+    "test:unit": "bun test --coverage --pass-with-no-tests",
+    "test:e2e": "bun test --coverage --pass-with-no-tests",
     "lint": "eslint .",
     "prettier:fix": "prettier --write ."
   }

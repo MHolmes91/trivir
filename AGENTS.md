@@ -5,6 +5,7 @@
 - Run lint: `bun run lint`
 - Run formatting: `bun run prettier:fix`
 - Run unit tests: `bun run test:unit`
+- Target at least 80% coverage when running Bun tests.
 - Run builds: `bun run build`
 - For larger changes touching UI flows, networking, or game logic, run Playwright: `bun run test:e2e`
 
@@ -18,6 +19,7 @@
 - Constant objects should be expressed as `const enum` values.
 - If a file defines more than three types/interfaces or those types are shared, move them into a colocated `types.ts`.
 - Do not re-export types from implementation files; import them from `types.ts` instead.
+- Avoid `any` and `unknown` types; prefer strong typing where possible.
 - GunDB tests should prefer real Gun instances; mocks are a last resort for unit tests and must be called out explicitly.
 
 ## Reference Docs

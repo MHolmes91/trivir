@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { createRoomStateDb } from "./db";
+import { createRoomStateDb } from "./index";
 
 type WaitPredicate<T> = (value: T) => boolean;
 
@@ -76,7 +76,7 @@ class MockGunNode {
     cb(this.data.value, this.data.key);
   }
 
-  on(event: string, handler: unknown): void {
+  on(event: string, handler: (message: unknown) => void): void {
     void event;
     void handler;
   }

@@ -1,8 +1,20 @@
-export interface GunChain {
-  get: (key: string) => GunChain;
-  put: (value: unknown, cb?: (ack: { err?: string }) => void) => void;
-  set: (value: unknown, cb?: (ack: { err?: string }) => void) => void;
-  map: () => GunChain;
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | {
+      [key: string]: JsonValue;
+    };
+
+export type EventPayload = Record<string, JsonValue>;
+
+export type GunLink = { "#": string };
+
+export interface GunChain<T = unknown> {
+  get: <K = unknown>(key: string) => GunChain<K>;
+  put: (value: T, cb?: (ack: { err?: string }) => void) => void;
+  set: (value: T, cb?: (ack: { err?: string }) => void) => void;
+  map: () => GunChain<T>;
   once: (cb: (value: unknown, key: string) => void) => void;
   on?: (event: string, handler: ((message: unknown) => void) | unknown) => void;
 }
@@ -24,7 +36,7 @@ export interface ScoreState {
 export interface EventLogEntry {
   id: string;
   type: string;
-  payload: unknown;
+  payload: EventPayload;
   timestamp: number;
   signature?: string;
   publicKey?: string;

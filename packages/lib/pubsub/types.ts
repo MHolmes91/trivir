@@ -20,9 +20,19 @@ export const TriviaEventTypes = [
 
 export type TriviaEventType = TriviaEventKind;
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | {
+      [key: string]: JsonValue;
+    };
+
+export type TriviaEventPayload = Record<string, JsonValue>;
+
 export interface TriviaEvent {
   type: TriviaEventType;
-  payload?: unknown;
+  payload?: TriviaEventPayload;
 }
 
 export interface PubsubMessageEvent {

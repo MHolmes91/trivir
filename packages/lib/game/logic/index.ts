@@ -11,7 +11,7 @@ import {
   type TriviaPlayer,
   type TriviaQuestion,
   type TriviaScore,
-} from "./types";
+} from "../types";
 
 const DefaultRoundDurationMs = 15000;
 const DefaultPointsPerCorrect = 100;
@@ -55,6 +55,9 @@ export const TriviaQuestionSet: TriviaQuestion[] = [
   },
 ];
 
+/**
+ * Picks a randomized subset of questions using the provided RNG.
+ */
 export function selectTriviaQuestions(
   questions: TriviaQuestion[],
   count: number,
@@ -78,6 +81,9 @@ export function selectTriviaQuestions(
   return shuffled.slice(0, normalizedCount);
 }
 
+/**
+ * Builds a trivia game state machine with injected timing/randomness.
+ */
 export function createTriviaGame(options: CreateTriviaGameOptions): TriviaGame {
   const roomCode = options.roomCode.trim();
   if (!roomCode) {

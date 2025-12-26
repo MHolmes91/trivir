@@ -5,24 +5,24 @@
   "scripts": {
     "dev": "bun test --watch",
     "build": "bun build ./networking/index.ts --outdir ./dist",
-    "test:unit": "bun test",
-    "test:e2e": "bun test",
+    "test:unit": "bun test --coverage",
+    "test:e2e": "bun test --coverage",
     "lint": "eslint .",
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.2",
     "@chainsafe/libp2p-noise": "^17.0.0",
-    "gun": "^0.2020.1241",
     "@chainsafe/libp2p-yamux": "^8.0.1",
     "@libp2p/bootstrap": "^12.0.10",
     "@libp2p/circuit-relay-v2": "^4.1.2",
     "@libp2p/identify": "^4.0.9",
     "@libp2p/interface-peer-id": "^2.0.2",
     "@libp2p/peer-id-factory": "^4.2.4",
-    "@libp2p/websockets": "^10.1.2",
     "@libp2p/webrtc": "^6.0.10",
+    "@libp2p/websockets": "^10.1.2",
     "@multiformats/multiaddr": "^13.0.1",
+    "gun": "^0.2020.1241",
     "libp2p": "^3.1.2"
   }
 }

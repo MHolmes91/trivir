@@ -6,9 +6,20 @@ export interface RoomDirectory {
   discover: (namespace: string, selfPeerId: PeerId) => AsyncIterable<PeerId>;
 }
 
+export interface PeerIdStorage {
+  get: () => string | null;
+  set: (value: string) => void;
+  clear: () => void;
+}
+
+export interface CreatePeerIdOptions {
+  storage?: PeerIdStorage | null;
+  refresh?: boolean;
+}
+
 export interface Libp2pLike {
   peerId: PeerId;
-  dial: (addr: Multiaddr) => Promise<unknown>;
+  dial: (addr: Multiaddr) => Promise<void>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
   roomDirectory?: RoomDirectory;
@@ -19,6 +30,8 @@ export interface CreateNetworkingNodeOptions {
   relayMultiaddrs?: string[];
   listenAddresses?: string[];
   roomDirectory?: RoomDirectory;
+  peerIdStorage?: PeerIdStorage | null;
+  refreshPeerId?: boolean;
 }
 
 export interface CreateTriviaPeerOptions extends CreateNetworkingNodeOptions {

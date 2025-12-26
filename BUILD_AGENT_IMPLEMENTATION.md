@@ -89,7 +89,7 @@ BDD unit tests:
 - Can subscribe to a room topic.
 - Can publish/receive each event type.
 
-Implementation: `packages/lib/pubsub/events.ts`.
+Implementation: `packages/lib/pubsub/events/index.ts`.
 
 ### 4) Peer GunDB Shared State (db.ts)
 
@@ -102,7 +102,7 @@ BDD unit tests:
 - Write/read state across peers.
 - Sync events and resolve conflicts correctly.
 
-Implementation: `packages/lib/state/db.ts` using GunDB + SEA.
+Implementation: `packages/lib/state/db/index.ts` using GunDB + SEA.
 
 ### 5) Trivia Game Business Logic
 
@@ -128,7 +128,7 @@ BDD unit tests:
 - Validate choice of questions from JSON
 - Timer expiration transitions.
 
-Implementation: `packages/lib/game/logic.ts`.
+Implementation: `packages/lib/game/logic/index.ts`.
 
 ### 6) Peer Host Election
 
@@ -214,7 +214,7 @@ Playwright BDD e2e tests:
 
 Implementation:
 
-- Extend `packages/lib/game/logic.ts` to accept external question sets.
+- Extend `packages/lib/game/logic/index.ts` to accept external question sets.
 - UI form + API support for question upload per room.
 
 ---

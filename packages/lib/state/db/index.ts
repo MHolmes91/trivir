@@ -6,10 +6,11 @@ import type {
   EventLogEntry,
   GunChain,
   GunInstance,
+  GunLink,
   PlayerState,
   RoomStateDb,
   ScoreState,
-} from "./types";
+} from "../types";
 
 type MapEntry<T> = {
   key: string;
@@ -19,6 +20,9 @@ type MapEntry<T> = {
 const DefaultCollectTimeoutMs = 100;
 const DefaultPutTimeoutMs = 200;
 
+/**
+ * Creates room-scoped GunDB helpers with SEA event signing.
+ */
 export async function createRoomStateDb(
   options: CreateStateDbOptions,
 ): Promise<RoomStateDb> {
@@ -31,12 +35,12 @@ export async function createRoomStateDb(
     }) as unknown as GunChain);
   const keys = options.keys ?? (await SEA.pair());
   const room = gun.get("rooms").get(normalizeRoomCode(options.roomCode));
-  const players = room.get("players");
-  const scores = room.get("scores");
-  const events = room.get("events");
-  const playerIndex = room.get("playerIndex");
-  const scoreIndex = room.get("scoreIndex");
-  const eventIndex = room.get("eventIndex");
+  const players = room.get<PlayerState>("players");
+  const scores = room.get<ScoreState>("scores");
+  const events = room.get<EventLogEntry>("events");
+  const playerIndex = room.get<boolean>("playerIndex");
+  const scoreIndex = room.get<boolean>("scoreIndex");
+  const eventIndex = room.get<boolean>("eventIndex");
 
   return {
     gun,
@@ -91,11 +95,10 @@ export async function createRoomStateDb(
         return false;
       }
       const verified = await SEA.verify(event.signature, event.publicKey);
-      if (!verified || typeof verified !== "object") {
+      if (!isEventLogEntry(verified)) {
         return false;
       }
-      const record = verified as EventLogEntry;
-      return record.id === event.id && record.timestamp === event.timestamp;
+      return verified.id === event.id && verified.timestamp === event.timestamp;
     },
   };
 }
@@ -159,12 +162,20 @@ function resolveLatestEvents(events: EventLogEntry[]): EventLogEntry[] {
   return Array.from(byId.values()).sort((a, b) => a.timestamp - b.timestamp);
 }
 
-function isGunLink(value: unknown): value is { "#": string } {
+function isEventLogEntry(value: unknown): value is EventLogEntry {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const record = value as { id?: unknown; timestamp?: unknown };
+  return typeof record.id === "string" && typeof record.timestamp === "number";
+}
+
+function isGunLink(value: unknown): value is GunLink {
   return Boolean(value && typeof value === "object" && "#" in value);
 }
 
 async function collectMap<T>(
-  node: GunChain,
+  node: GunChain<T>,
   timeoutMs = DefaultCollectTimeoutMs,
 ): Promise<Array<MapEntry<T>>> {
   return new Promise((resolve) => {
@@ -172,55 +183,65 @@ async function collectMap<T>(
     const seen = new Set<string>();
     const timeout = setTimeout(() => resolve(results), timeoutMs);
 
-    node.map().once((value: unknown, key: string) => {
-      if (!value || seen.has(key)) {
+    node.map().once((value, key: string) => {
+      if (value == null || seen.has(key)) {
         return;
       }
       seen.add(key);
       if (isGunLink(value)) {
-        node.get(key).once((resolved: unknown) => {
-          if (!resolved) {
+        node.get<T>(key).once((resolved) => {
+          if (resolved == null || isGunLink(resolved)) {
             return;
           }
-          results.push({ key, value: resolved as T });
+          const typedResolved = resolved as T;
+          results.push({ key, value: typedResolved });
           clearTimeout(timeout);
           setTimeout(() => resolve(results), timeoutMs);
         });
         return;
       }
-      results.push({ key, value: value as T });
+      const typedValue = value as T;
+      results.push({ key, value: typedValue });
       clearTimeout(timeout);
       setTimeout(() => resolve(results), timeoutMs);
     });
   });
 }
 
-async function readIndexKeys(node: GunChain): Promise<string[]> {
-  const entries = await collectMap<unknown>(node);
+async function readIndexKeys(node: GunChain<boolean>): Promise<string[]> {
+  const entries = await collectMap<boolean>(node);
   return entries.map(({ key }) => key);
 }
 
 async function readByKey<T>(
-  node: GunChain,
+  node: GunChain<T>,
   key: string,
   timeoutMs = DefaultCollectTimeoutMs,
 ): Promise<T | null> {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => resolve(null), timeoutMs);
-    node.get(key).once((value: unknown) => {
+    node.get<T>(key).once((value) => {
       clearTimeout(timeout);
-      resolve((value as T | null) ?? null);
+      if (value == null || isGunLink(value)) {
+        resolve(null);
+        return;
+      }
+      resolve(value as T);
     });
   });
 }
 
-async function readByKeys<T>(node: GunChain, keys: string[]): Promise<T[]> {
+async function readByKeys<T>(node: GunChain<T>, keys: string[]): Promise<T[]> {
   const entries = await Promise.all(keys.map((key) => readByKey<T>(node, key)));
-  return entries.filter(Boolean) as T[];
+  return entries.filter(isDefined);
+}
+
+function isDefined<T>(value: T | null): value is T {
+  return value !== null;
 }
 
 async function putPromise<T>(
-  node: GunChain,
+  node: GunChain<T>,
   value: T,
   timeoutMs = DefaultPutTimeoutMs,
 ): Promise<void> {

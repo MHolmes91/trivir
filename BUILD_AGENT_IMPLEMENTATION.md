@@ -136,7 +136,7 @@ Implementation: `packages/lib/game/logic/index.ts`.
 
 ### 6) Peer Host Election
 
-Status: in progress
+Status: completed
 
 Goal: Elect a new host when the host peer disconnects.
 
@@ -157,6 +157,7 @@ BDD e2e tests (Playwright in `playwright/`):
 - Start 3 browser sessions.
 - Each connects via relay + WebRTC.
 - Validate pub/sub and shared state sync across all 3.
+- Validate host election when the host peer leaves
 
 Implementation: Stories like "3 players join room, game starts, all peers sync events".
 

@@ -31,6 +31,10 @@ IMPORTANT: Track step status in this file: mark steps as in progress when they a
 
 ---
 
+## Implementation Conventions
+
+- When adding a JS/TS module that requires a test, place it in a dedicated kebab-case folder with `index.ts` and `index.test.ts` (e.g., `host-election/`).
+
 ## AGENT STEPS (Feed These to Your Coding Agent)
 
 ### 1) Monorepo Structure
@@ -132,6 +136,8 @@ Implementation: `packages/lib/game/logic/index.ts`.
 
 ### 6) Peer Host Election
 
+Status: in progress
+
 Goal: Elect a new host when the host peer disconnects.
 
 BDD unit tests:
@@ -140,7 +146,7 @@ BDD unit tests:
 - Simulate 3 peers, remove host, verify next host selection.
 - Deterministic fallback rules (PeerID sort / timestamp).
 
-Implementation: `packages/lib/networking/hostElection.ts`.
+Implementation: `packages/lib/networking/host-election/index.ts`.
 
 ### 7) Connect 3 Peers Locally (Dev/Debug)
 

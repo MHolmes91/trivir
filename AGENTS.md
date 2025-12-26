@@ -18,6 +18,7 @@
 - Constants and enums use PascalCase.
 - Constant objects should be expressed as `const enum` values.
 - If a file defines more than three types/interfaces or those types are shared, move them into a colocated `types.ts`.
+- When adding a JS/TS module that requires a test, place it in a dedicated kebab-case folder with `index.ts` and `index.test.ts` (for example, `host-election/`).
 - Do not re-export types from implementation files; import them from `types.ts` instead.
 - Add JSDoc only where it adds value; do not repeat details already captured by typing.
 - Simple, obvious functions do not need JSDoc.

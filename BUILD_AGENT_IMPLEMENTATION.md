@@ -150,6 +150,8 @@ Implementation: `packages/lib/networking/host-election/index.ts`.
 
 ### 7) Connect 3 Peers Locally (Dev/Debug)
 
+Status: in progress
+
 Goal: Validate connections among 3 browser peers during development.
 
 BDD e2e tests (Playwright in `playwright/`):

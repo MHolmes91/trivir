@@ -19,6 +19,9 @@ yarn-error.log*
 pnpm-debug.log*
 bun-debug.log*
 
+# Playwright
+/playwright/test-results/
+
 # env files
 .env
 .env.*

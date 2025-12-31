@@ -21,6 +21,7 @@ bun-debug.log*
 
 # Playwright
 /playwright/test-results/
+/playwright/.generated
 
 # env files
 .env

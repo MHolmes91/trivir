@@ -142,7 +142,7 @@ Goal: Elect a new host when the host peer disconnects.
 
 BDD unit tests:
 
-- Each peer shoudd
+- Each peer should
 - Simulate 3 peers, remove host, verify next host selection.
 - Deterministic fallback rules (PeerID sort / timestamp).
 
@@ -150,7 +150,7 @@ Implementation: `packages/lib/networking/host-election/index.ts`.
 
 ### 7) Headless Client Harness (No UI)
 
-Status: pending
+Status: completed
 
 Goal: Provide a basic client module (no UI) to start peers and drive scenarios for Step 9 Playwright tests.
 
@@ -159,9 +159,11 @@ BDD unit tests:
 - Can boot a peer with a room code and connect to the relay.
 - Can publish/receive pubsub events for a room.
 
-Implementation: `apps/client/logic/headless/index.ts` + a minimal CLI entry (`apps/client/logic/cli.ts`) for spawning peers.
+Implementation: `apps/client/headless/*` + a minimal CLI entry (`apps/client/headless/cli/index.ts`) for spawning peers.
 
 ### 8) Basic Relay + WebRTC Server (Local)
+
+Status: completed
 
 Goal: Provide a minimal relay + WebRTC signalling server for local dev and Step 9 tests.
 
@@ -174,6 +176,8 @@ Implementation: `apps/server/relay/basic.ts` using `@libp2p/circuit-relay-v2`, `
 
 ### 9) Connect 3 Peers Locally (Dev/Debug)
 
+Status: pending
+
 Goal: Validate connections among 3 browser peers during development.
 
 BDD e2e tests (Playwright in `playwright/`):
@@ -182,6 +186,14 @@ BDD e2e tests (Playwright in `playwright/`):
 - Each connects via relay + WebRTC.
 - Validate pub/sub and shared state sync across all 3.
 - Validate host election when the host peer leaves
+
+Steps to ensure libp2p-only connectivity (no fallbacks):
+
+1. Launch each peer in its own Playwright browser context (three separate contexts)
+2. Ensure libp2p without fallbacks is used for this scenario.
+3. Wait for relay connectivity explicitly (e.g., peer connection status or relay reservation) before publishing events.
+4. Wait for pubsub subscriptions/mesh readiness before publish, then assert events propagate over libp2p.
+5. Fail if relay dial fails or if no relay/WebRTC multiaddr is present (do not accept optimistic flags).
 
 Implementation: Stories like "3 players join room, game starts, all peers sync events".
 

@@ -10,6 +10,22 @@ This document guides the implementation of a decentralized peer connection syste
 
 ## Overview
 
+## Documentation Links
+
+Use these sources for up-to-date behavior and APIs:
+
+- libp2p concepts: https://docs.libp2p.io/
+- js-libp2p (implementation and examples): https://github.com/libp2p/js-libp2p
+- GossipSub concept: https://docs.libp2p.io/concepts/pubsub/
+- js-libp2p-gossipsub package: https://github.com/ChainSafe/js-libp2p-gossipsub
+- Circuit Relay v2: https://docs.libp2p.io/concepts/nat/circuit-relay/
+- DCUtR / hole punching: https://docs.libp2p.io/concepts/nat/hole-punching/
+- AutoNAT: https://docs.libp2p.io/concepts/nat/autonat/
+- WebRTC transport (js-libp2p): https://github.com/libp2p/js-libp2p/tree/master/packages/transport-webrtc
+- WebRTC direct transport (js-libp2p): https://github.com/libp2p/js-libp2p/tree/master/packages/transport-webrtc-direct
+- WebSockets transport (js-libp2p): https://github.com/libp2p/js-libp2p/tree/master/packages/transport-websockets
+- multiaddr format: https://github.com/multiformats/multiaddr
+
 Instead of separate STUN/TURN and signalling servers, we use:
 
 - A public libp2p relay node

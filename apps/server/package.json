@@ -8,5 +8,14 @@
     "test:e2e": "bun test --coverage --pass-with-no-tests",
     "lint": "eslint .",
     "prettier:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.2",
+    "@chainsafe/libp2p-noise": "^17.0.0",
+    "@chainsafe/libp2p-yamux": "^8.0.1",
+    "@libp2p/circuit-relay-v2": "^4.1.2",
+    "@libp2p/identify": "^4.0.9",
+    "@libp2p/websockets": "^10.1.2",
+    "libp2p": "^3.1.2"
   }
 }

@@ -18,6 +18,8 @@ export default [
       ".cache/",
       ".parcel-cache/",
       "bun.lock",
+      "playwright/.generated/",
+      "playwright/test-results/",
     ],
   },
   js.configs.recommended,

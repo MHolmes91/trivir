@@ -176,7 +176,7 @@ Implementation: `apps/server/relay/basic.ts` using `@libp2p/circuit-relay-v2`, `
 
 ### 9) Connect 3 Peers Locally (Dev/Debug)
 
-Status: pending
+Status: in progress
 
 Goal: Validate connections among 3 browser peers during development.
 

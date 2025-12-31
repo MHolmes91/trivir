@@ -5,7 +5,8 @@
     "dev": "playwright test --ui",
     "build": "playwright test --list",
     "test:unit": "playwright test --list",
-    "test:e2e": "playwright test",
+    "generate:peer-client": "bun run scripts/build-peer-client.ts",
+    "test:e2e": "bun run generate:peer-client && playwright test",
     "lint": "eslint .",
     "prettier:fix": "prettier --write ."
   },

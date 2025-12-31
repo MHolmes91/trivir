@@ -7,6 +7,7 @@ import { identify } from "@libp2p/identify";
 import { bootstrap } from "@libp2p/bootstrap";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import {
   createEd25519PeerId,
   createFromProtobuf,
@@ -172,11 +173,28 @@ export async function createNetworkingNode(
       refresh: options.refreshPeerId,
     }));
   const relayMultiaddrs = options.relayMultiaddrs ?? [];
+  const relayReservationCount = relayMultiaddrs.length;
   const listenAddresses = options.listenAddresses ?? [
     "/p2p-circuit",
     "/webrtc",
   ];
   const roomDirectory = options.roomDirectory ?? DefaultRoomDirectory;
+  const allowInsecureWebSockets =
+    options.allowInsecureWebSockets ??
+    (typeof process !== "undefined" &&
+      process.env?.TRIVIA_ALLOW_INSECURE_WS === "true");
+
+  const webSocketTransportFactory = webSockets();
+  const allowWebSocketAddrs = (multiaddrs: Multiaddr[]) =>
+    multiaddrs.filter((addr) => addr.toString().includes("/ws"));
+  const webSocketTransport = allowInsecureWebSockets
+    ? (((components: Parameters<typeof webSocketTransportFactory>[0]) => {
+        const transport = webSocketTransportFactory(components) as any;
+        transport.dialFilter = allowWebSocketAddrs;
+        transport.listenFilter = allowWebSocketAddrs;
+        return transport;
+      }) as ReturnType<typeof webSockets>)
+    : webSocketTransportFactory;
 
   // Load WebRTC transport lazily to keep bundles lean.
   const { webRTC } = await import("@libp2p/webrtc");
@@ -187,14 +205,18 @@ export async function createNetworkingNode(
     addresses: {
       listen: listenAddresses,
     },
-    transports: [webSockets(), webRTC(), circuitRelayTransport()],
+    transports: [
+      webSocketTransport,
+      webRTC(),
+      circuitRelayTransport({ discoverRelays: relayReservationCount }),
+    ],
     connectionEncrypters: [noise()],
     streamMuxers: [yamux()],
     peerDiscovery:
       relayMultiaddrs.length > 0 ? [bootstrap({ list: relayMultiaddrs })] : [],
     services: {
       identify: identify(),
-      pubsub: gossipsub({ emitSelf: false }),
+      pubsub: gossipsub({ emitSelf: false, fallbackToFloodsub: false }),
     },
   });
 
@@ -285,6 +307,7 @@ export async function createTriviaPeer(
       relayMultiaddrs,
       listenAddresses: options.listenAddresses,
       roomDirectory,
+      allowInsecureWebSockets: options.allowInsecureWebSockets,
     });
   }
 

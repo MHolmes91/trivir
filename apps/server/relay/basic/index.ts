@@ -28,6 +28,7 @@ const DefaultPort = "9090";
  * Supported env vars:
  * - RELAY_LISTEN: comma-separated multiaddrs
  * - RELAY_HOST / RELAY_PORT: fallback host/port for a ws multiaddr
+ * - RELAY_ALLOW_INSECURE_WS: set "false" to prefer wss
  */
 export function resolveListenAddresses(): string[] {
   const explicit = process.env.RELAY_LISTEN?.split(",").map((value) =>
@@ -40,7 +41,9 @@ export function resolveListenAddresses(): string[] {
 
   const host = process.env.RELAY_HOST ?? DefaultHost;
   const port = process.env.RELAY_PORT ?? DefaultPort;
-  return [`/ip4/${host}/tcp/${port}/ws`];
+  const allowInsecure = process.env.RELAY_ALLOW_INSECURE_WS !== "false";
+  const protocol = allowInsecure ? "ws" : "wss";
+  return [`/ip4/${host}/tcp/${port}/${protocol}`];
 }
 
 export function formatRelayAddress(address: string, peerId: string): string {
@@ -76,7 +79,7 @@ export function createBasicRelayOptions(): Parameters<typeof createLibp2p>[0] {
     services: {
       identify: identify(),
       relay: circuitRelayServer(),
-      pubsub: gossipsub({ emitSelf: false }),
+      pubsub: gossipsub({ emitSelf: false, fallbackToFloodsub: false }),
     },
   };
 }

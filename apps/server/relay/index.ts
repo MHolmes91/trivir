@@ -22,7 +22,9 @@ function resolveListenAddresses(): string[] {
 
   const host = process.env.RELAY_HOST ?? DefaultHost;
   const port = process.env.RELAY_PORT ?? DefaultPort;
-  return [`/ip4/${host}/tcp/${port}/ws`];
+  const allowInsecure = process.env.RELAY_ALLOW_INSECURE_WS !== "false";
+  const protocol = allowInsecure ? "ws" : "wss";
+  return [`/ip4/${host}/tcp/${port}/${protocol}`];
 }
 
 function formatRelayAddress(address: string, peerId: string): string {
@@ -34,6 +36,7 @@ function formatRelayAddress(address: string, peerId: string): string {
 
 export async function startBasicRelay(): Promise<
   Awaited<ReturnType<typeof createLibp2p>>
+  // eslint-disable-next-line indent
 > {
   const relay = await createLibp2p({
     addresses: {

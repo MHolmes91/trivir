@@ -32,6 +32,7 @@ export interface CreateNetworkingNodeOptions {
   roomDirectory?: RoomDirectory;
   peerIdStorage?: PeerIdStorage | null;
   refreshPeerId?: boolean;
+  allowInsecureWebSockets?: boolean;
 }
 
 export interface CreateTriviaPeerOptions extends CreateNetworkingNodeOptions {
